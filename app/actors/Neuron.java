@@ -10,18 +10,12 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 public class Neuron extends UntypedActor {
-  LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+  private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+  private List<Link> links = new ArrayList<>();
   
-  private List<Link> links;
-  
-  Neuron() {
-    links = new ArrayList<>();
-  }
-
   public static Props props() {
     return Props.create(Neuron.class, () -> new Neuron());
   }
-  
   
   @Override
   public void onReceive(Object message) throws Exception {
@@ -39,7 +33,8 @@ public class Neuron extends UntypedActor {
   }
   
   private class Link {
-    //float weight; // [0, 1]
+    //float strength; // [-1, 1]
+    //float delay
     ActorRef target;
     
     Link(ActorRef target) {

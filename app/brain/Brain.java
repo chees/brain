@@ -9,25 +9,29 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 
 public class Brain {
+  private ActorSystem system = ActorSystem.create();
   private Map<Character, ActorRef> inputs = new HashMap<>();
   
   public Brain(ActorRef output) {
-    ActorSystem system = ActorSystem.create();
-    
     for (char c = 'a'; c <= 'z'; c++) {
-      
-      ActorRef out = system.actorOf(Output.props(output, c));
-      
-      ActorRef in = system.actorOf(Neuron.props());
-      inputs.put(c, in);
-      
-      in.tell(out, null);
+      createInputOutputLink(c, output);
     }
+    createInputOutputLink(' ', output);
+  }
+  
+  private void createInputOutputLink(char c, ActorRef output) {
+    ActorRef out = system.actorOf(Output.props(output, c));
+    
+    ActorRef in = system.actorOf(Neuron.props());
+    inputs.put(c, in);
+    
+    // For now just link inputs directly to outputs:
+    in.tell(out, null);
   }
   
   public void input(char c) {
     c = Character.toLowerCase(c);
-    if (c < 'a' || c > 'z')
+    if (c != ' ' && (c < 'a' || c > 'z'))
       return;
     inputs.get(c).tell("fire", ActorRef.noSender());
   }
