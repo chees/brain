@@ -1,0 +1,60 @@
+AI
+
+Concept
+  List<Link> links
+  /*
+  TODO should there be a name or something like that for a concept?
+  Probably best if there isn't, since concepts could be very abstract and the idea is that they form themselves.
+
+  */
+
+Link
+  Concept destination
+  double strength [0,1]
+
+
+
+Input and output are both character streams over time
+Feedback can be an additional input [-1,1]
+
+
+The AI should probably have a goal.
+The goal could be to maximize a happiness score for example. That score always levels out over time.
+
+
+
+
+
+What if you have an Actor system where each neuron is an Actor.
+Neuron implements Target
+  double value [0,1]
+  Set<Link> links
+
+Link
+  Target destination
+  double strength [-1,1]
+  double delay [0,1]
+
+Input
+  char c
+  Neuron n
+
+Output implements Target
+  char c
+
+AI
+  List<Input> inputs
+  List<Output> outputs
+
+On input fire the corresponding inputs.
+Initially we probably need a set of neurons with paths from inputs to outputs. Maybe "nothing" should also be an input so we have a constant stream of activity.
+
+We need a way to change strenths and delays of links.
+We probably also need a way to add new Neurons and Links.
+
+
+
+
+
+
+
