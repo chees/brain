@@ -3,7 +3,9 @@ package actors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+import scala.concurrent.duration.Duration;
 import brain.FireMsg;
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -30,10 +32,13 @@ public class Neuron extends UntypedActor {
     else if (message instanceof FireMsg) {
       value += ((FireMsg) message).strength;
       if (value >= 1) {
-        //log.info("fired");
-        for (Link l : links) {
-          l.target.tell(new FireMsg(l.strength), getSelf());
-        }
+        for (Link l : links)
+          getContext().system().scheduler().scheduleOnce(
+              Duration.create(l.delayMs, TimeUnit.MILLISECONDS),
+              l.target,
+              new FireMsg(l.strength),
+              getContext().dispatcher(),
+              getSelf());
         value = 0;
       }
       else if (value < -1)
@@ -44,12 +49,13 @@ public class Neuron extends UntypedActor {
   
   private class Link {
     float strength; // [-1, 1]
-    //float delay;
+    int delayMs;
     ActorRef target;
     
     Link(ActorRef target) {
       this.target = target;
-      strength = (random.nextFloat() * 2 - 1) / 2;
+      strength = (random.nextFloat() * 2 - 1) / 2; // TODO
+      delayMs = random.nextInt(1000); // TODO
     }
   }
 }
