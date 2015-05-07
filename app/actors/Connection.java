@@ -32,7 +32,7 @@ public class Connection extends UntypedActor {
   @Override
   public void onReceive(Object message) throws Exception {
     if (message instanceof Tick) {
-      log.info("tick");
+      //log.info("tick");
       brain.input(lastReceived);
       lastReceived = ' ';
     } else if (message instanceof String) {

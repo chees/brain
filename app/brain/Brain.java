@@ -1,6 +1,8 @@
 package brain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import actors.Neuron;
@@ -8,31 +10,40 @@ import actors.Output;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
 public class Brain {
+  private final static ImmutableList<Character> ALPHABET = Lists.charactersOf("abcdefghijklmnopqrstuvwxyz ");
+  
   private ActorSystem system = ActorSystem.create();
   private Map<Character, ActorRef> inputs = new HashMap<>();
+  private List<ActorRef> middles = new ArrayList<>();
+  private List<ActorRef> outputs = new ArrayList<>();
   
   public Brain(ActorRef output) {
-    for (char c = 'a'; c <= 'z'; c++) {
-      createInputOutputLink(c, output);
+    
+    for (char c : ALPHABET) {
+      inputs.put(c, system.actorOf(Neuron.props()));
+      middles.add(system.actorOf(Neuron.props()));
+      outputs.add(system.actorOf(Output.props(output, c)));
     }
-    createInputOutputLink(' ', output);
-  }
-  
-  private void createInputOutputLink(char c, ActorRef output) {
-    ActorRef out = system.actorOf(Output.props(output, c));
     
-    ActorRef in = system.actorOf(Neuron.props());
-    inputs.put(c, in);
+    // Connect inputs to middles:
+    for (ActorRef in : inputs.values())
+      for (ActorRef m : middles)
+        in.tell(m, null);
     
-    // For now just link inputs directly to outputs:
-    in.tell(out, null);
+    // Connect middles to outputs:
+    for (ActorRef m : middles)
+      for (ActorRef out : outputs)
+        m.tell(out, null);
   }
   
   public void input(char c) {
     c = Character.toLowerCase(c);
-    if (c != ' ' && (c < 'a' || c > 'z'))
+    if (!ALPHABET.contains(c))
       return;
-    inputs.get(c).tell("fire", ActorRef.noSender());
+    inputs.get(c).tell(new FireMsg(1), ActorRef.noSender());
   }
 }
